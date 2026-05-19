@@ -26,6 +26,7 @@ import {
 import { useChatStore, type ChatMsg } from '@/store/useChatStore';
 import { MarkdownRenderer } from '@/components/chat/MarkdownRenderer';
 import { TypingIndicator } from '@/components/chat/TypingIndicator';
+import { confirmDialog } from '@/components/shared/ConfirmDialog';
 import { toast } from 'sonner';
 import { formatRelativeTime } from '@/lib/utils';
 
@@ -253,9 +254,17 @@ function ChatContent() {
                       </p>
                     </div>
                     <button
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         e.stopPropagation();
+                        const ok = await confirmDialog({
+                          title: 'Delete this conversation?',
+                          message: `"${conv.title}" and all its messages will be permanently removed.`,
+                          confirmLabel: 'Delete chat',
+                          variant: 'danger',
+                        });
+                        if (!ok) return;
                         deleteConversation(conv.id);
+                        toast.success('Conversation deleted');
                       }}
                       className="p-1.5 rounded-md text-[var(--text-muted)] opacity-0 group-hover:opacity-100 hover:bg-[rgba(239,68,68,0.15)] hover:text-[var(--error)] transition-all"
                       title="Delete conversation"

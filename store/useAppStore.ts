@@ -23,11 +23,13 @@ interface AppState {
   quizzes: Quiz[];
   setQuizzes: (quizzes: Quiz[]) => void;
   addQuiz: (quiz: Quiz) => void;
+  deleteQuiz: (id: string) => void;
 
   // Flashcards
   decks: FlashcardDeck[];
   setDecks: (decks: FlashcardDeck[]) => void;
   addDeck: (deck: FlashcardDeck) => void;
+  deleteDeck: (id: string) => void;
 
   // Study Tasks
   tasks: StudyTask[];
@@ -71,10 +73,12 @@ export const useAppStore = create<AppState>((set) => ({
   quizzes: [],
   setQuizzes: (quizzes) => set({ quizzes }),
   addQuiz: (quiz) => set((s) => ({ quizzes: [quiz, ...s.quizzes] })),
+  deleteQuiz: (id) => set((s) => ({ quizzes: s.quizzes.filter((q) => q.id !== id) })),
 
   decks: [],
   setDecks: (decks) => set({ decks }),
   addDeck: (deck) => set((s) => ({ decks: [deck, ...s.decks] })),
+  deleteDeck: (id) => set((s) => ({ decks: s.decks.filter((d) => d.id !== id) })),
 
   tasks: [],
   setTasks: (tasks) => set({ tasks }),

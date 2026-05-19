@@ -73,25 +73,19 @@ export function Topbar() {
 
   return (
     <header
-      className="sticky top-0 z-30 flex items-center justify-between border-b w-full"
+      className="sticky top-0 z-30 flex items-center justify-between border-b w-full h-16 px-3 sm:px-4"
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        height: '64px',
-        padding: '0 16px',
         background: 'rgba(5, 5, 8, 0.85)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
         borderColor: 'var(--border)',
-        zIndex: 30,
       }}
     >
       {/* Left side: hamburger + search */}
-      <div className="flex items-center gap-3 flex-1 min-w-0 h-full">
+      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 h-full">
         <button
           onClick={() => setSidebarOpen(true)}
-          className="lg:hidden p-2 rounded-lg hover:bg-[var(--bg-elevated)] transition-colors"
+          className="lg:hidden p-2 rounded-lg hover:bg-[var(--bg-elevated)] transition-colors shrink-0"
           aria-label="Open menu"
         >
           <Menu size={20} style={{ color: 'var(--text-secondary)' }} />
@@ -99,35 +93,31 @@ export function Topbar() {
 
         <form
           onSubmit={submitSearch}
-          className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg flex-1 max-w-md"
-          style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '8px',
-            padding: '8px 12px',
-            borderRadius: '8px',
-            flex: '1 1 0%',
-            maxWidth: '28rem',
-            background: 'var(--bg-card)', 
-            border: '1px solid var(--border)' 
+          className="flex items-center gap-2 px-3 py-2 rounded-lg flex-1 max-w-md"
+          style={{
+            background: 'var(--bg-card)',
           }}
         >
-          <Search size={16} style={{ color: 'var(--text-muted)' }} />
+          <Search size={16} style={{ color: 'var(--text-muted)' }} className="shrink-0" />
           <input
             id="topbar-search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             type="text"
             placeholder="Search notes…"
-            className="bg-transparent border-none outline-none text-sm flex-1 min-w-0"
-            style={{ color: 'var(--text-primary)' }}
+            className="bg-transparent text-sm flex-1 min-w-0"
+            style={{
+              color: 'var(--text-primary)',
+              border: 'none',
+              outline: 'none',
+              boxShadow: 'none',
+            }}
           />
           <kbd
             className="hidden md:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono shrink-0"
             style={{
               background: 'var(--bg-elevated)',
               color: 'var(--text-muted)',
-              border: '1px solid var(--border)',
             }}
           >
             ⌘K

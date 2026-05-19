@@ -63,20 +63,20 @@ export default function NotesPage() {
   return (
     <div>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
+          <h1 className="text-xl sm:text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
             My Notes
           </h1>
           <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
             {notes.length} note{notes.length !== 1 ? 's' : ''} in your library
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={() => setShowUploader(true)} className="btn-secondary text-sm">
-            <Upload size={16} /> Upload PDF
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto flex-wrap">
+          <button onClick={() => setShowUploader(true)} className="btn-secondary text-sm flex-1 sm:flex-initial">
+            <Upload size={16} /> <span className="hidden xs:inline">Upload</span> Document
           </button>
-          <button onClick={() => setShowEditor(true)} className="btn-primary text-sm">
+          <button onClick={() => setShowEditor(true)} className="btn-primary text-sm flex-1 sm:flex-initial">
             <Plus size={16} /> New Note
           </button>
         </div>
@@ -126,7 +126,7 @@ export default function NotesPage() {
         />
       ) : (
         <motion.div
-          className="grid md:grid-cols-2 xl:grid-cols-3 gap-4"
+          className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >

@@ -24,30 +24,60 @@ export default function SignupPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    const trimmedName = fullName.trim();
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedName) {
+      toast.error('Please enter your full name');
+      return;
+    }
+    if (!trimmedEmail || !trimmedEmail.includes('@')) {
+      toast.error('Please enter a valid email');
+      return;
+    }
     if (password.length < 6) {
       toast.error('Password must be at least 6 characters');
       return;
     }
     setLoading(true);
     try {
-      // 1. Create the account
-      const { error: signUpError } = await supabase.auth.signUp({
-        email,
+      // 1. Create the account. If a session is returned immediately,
+      //    Supabase has email confirmation disabled — we can go straight in.
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: trimmedEmail,
         password,
-        options: { data: { full_name: fullName } },
+        options: {
+          data: { full_name: trimmedName },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
-      if (signUpError) throw signUpError;
+      if (signUpError) {
+        // Friendlier message for the common "user already exists" case.
+        const msg = signUpError.message || '';
+        if (/already (registered|exists)/i.test(msg) || /User already registered/i.test(msg)) {
+          toast.error('An account with this email already exists. Try signing in instead.');
+        } else {
+          toast.error(msg || 'Signup failed');
+        }
+        return;
+      }
 
-      // 2. Immediately sign in so we land in /dashboard with a session.
-      //    Works only if "Confirm email" is OFF in Supabase Auth settings.
+      // If we got a session back, we're authenticated already.
+      if (signUpData.session) {
+        toast.success('Welcome to StudyMind AI!');
+        router.push('/dashboard');
+        return;
+      }
+
+      // 2. No session yet — try to sign in directly. Works only when
+      //    "Confirm email" is OFF in Supabase Auth settings.
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
+        email: trimmedEmail,
         password,
       });
       if (signInError) {
-        // Most likely cause: email confirmation is still required.
-        // Tell the user clearly and bail.
-        toast.error(signInError.message);
+        // Most likely: email confirmation is required.
+        toast.success('Account created! Please check your inbox to confirm your email before signing in.');
+        router.push('/login');
         return;
       }
 

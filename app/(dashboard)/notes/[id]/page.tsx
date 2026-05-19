@@ -21,6 +21,7 @@ import { getSubjectColor, formatDate } from '@/lib/utils';
 import { Note } from '@/types';
 import { toast } from 'sonner';
 import { authedFetch } from '@/lib/api';
+import { confirmDialog } from '@/components/shared/ConfirmDialog';
 
 export default function NoteDetailPage() {
   const params = useParams();
@@ -66,8 +67,20 @@ export default function NoteDetailPage() {
   };
 
   const handleDelete = async () => {
-    if (!confirm('Delete this note?')) return;
-    await supabase.from('notes').delete().eq('id', noteId);
+    const ok = await confirmDialog({
+      title: 'Delete this note?',
+      message: note
+        ? `"${note.title}" will be permanently deleted, along with its summary, chats, and any quizzes or flashcards generated from it.`
+        : 'This note will be permanently deleted.',
+      confirmLabel: 'Delete note',
+      variant: 'danger',
+    });
+    if (!ok) return;
+    const { error } = await supabase.from('notes').delete().eq('id', noteId);
+    if (error) {
+      toast.error('Failed to delete note');
+      return;
+    }
     toast.success('Note deleted');
     router.push('/notes');
   };

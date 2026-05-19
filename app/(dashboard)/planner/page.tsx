@@ -21,6 +21,7 @@ import { getSubjectColor, formatDate } from '@/lib/utils';
 import { StudyTask } from '@/types';
 import { toast } from 'sonner';
 import { authedFetch } from '@/lib/api';
+import { confirmDialog } from '@/components/shared/ConfirmDialog';
 import { format, startOfWeek, addDays, isToday, isSameDay } from 'date-fns';
 
 export default function PlannerPage() {
@@ -104,6 +105,16 @@ export default function PlannerPage() {
   };
 
   const handleDelete = async (taskId: string) => {
+    const task = tasks.find((t) => t.id === taskId);
+    const ok = await confirmDialog({
+      title: 'Remove this study task?',
+      message: task
+        ? `"${task.title}" will be removed from your study plan.`
+        : 'This task will be removed from your study plan.',
+      confirmLabel: 'Remove task',
+      variant: 'danger',
+    });
+    if (!ok) return;
     await supabase.from('study_tasks').delete().eq('id', taskId);
     setTasks(tasks.filter((t) => t.id !== taskId));
     toast.success('Task removed');
@@ -130,41 +141,41 @@ export default function PlannerPage() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
+          <h1 className="text-xl sm:text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
             Study Planner
           </h1>
           <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
             Your AI-powered study schedule
           </p>
         </div>
-        <button onClick={() => setShowGenerateModal(true)} className="btn-primary text-sm">
+        <button onClick={() => setShowGenerateModal(true)} className="btn-primary text-sm shrink-0">
           <Sparkles size={16} /> Generate AI Plan
         </button>
       </div>
 
       {/* Week nav */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between gap-2 mb-6 flex-wrap">
         <button
           onClick={() => setWeekStart(addDays(weekStart, -7))}
-          className="btn-ghost text-sm"
+          className="btn-ghost text-xs sm:text-sm"
         >
-          ← Previous Week
+          ← Prev
         </button>
-        <span className="text-sm font-semibold">
+        <span className="text-xs sm:text-sm font-semibold text-center flex-1 min-w-0">
           {format(weekStart, 'MMM d')} — {format(addDays(weekStart, 6), 'MMM d, yyyy')}
         </span>
         <button
           onClick={() => setWeekStart(addDays(weekStart, 7))}
-          className="btn-ghost text-sm"
+          className="btn-ghost text-xs sm:text-sm"
         >
-          Next Week →
+          Next →
         </button>
       </div>
 
       {/* Calendar grid */}
-      <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3">
         {weekDays.map((day) => {
           const dayTasks = getTasksForDate(day);
           const today = isToday(day);

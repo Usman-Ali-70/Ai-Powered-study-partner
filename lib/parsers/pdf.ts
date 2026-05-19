@@ -1,9 +1,18 @@
-import * as pdfParse from 'pdf-parse';
+import { PDFParse } from 'pdf-parse';
 
 export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
-  // pdf-parse v2 uses named exports
-  const parse = (pdfParse as unknown as { default?: (buf: Buffer) => Promise<{ text: string }>; (buf: Buffer): Promise<{ text: string }> });
-  const fn = typeof parse === 'function' ? parse : ((parse as any).default || parse);
-  const data = await (fn as (buf: Buffer) => Promise<{ text: string }>)(buffer);
-  return data.text;
+  // pdf-parse v2 exposes a class. Pass the PDF as a Uint8Array
+  // (it warns about Node Buffer ownership transfer to worker, so copy).
+  const data = new Uint8Array(buffer);
+  const parser = new PDFParse({ data });
+  try {
+    const result = await parser.getText();
+    return result.text ?? '';
+  } finally {
+    try {
+      await parser.destroy();
+    } catch {
+      // ignore cleanup errors
+    }
+  }
 }

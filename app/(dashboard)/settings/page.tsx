@@ -15,20 +15,41 @@ import {
   Clock,
   Trash2,
   Zap,
+  AlertTriangle,
 } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { useChatStore } from '@/store/useChatStore';
 import { supabase } from '@/lib/supabase/client';
+import { confirmDialog } from '@/components/shared/ConfirmDialog';
 import { toast } from 'sonner';
 
 export default function SettingsPage() {
-  const { user, setUser } = useAppStore();
+  const {
+    user,
+    setUser,
+    setNotes,
+    setQuizzes,
+    setDecks,
+    setTasks,
+    notes,
+    quizzes,
+    decks,
+    tasks,
+  } = useAppStore();
   const { settings, updateSettings, clearAllConversations, conversations } = useChatStore();
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
   const [sendingReset, setSendingReset] = useState(false);
+  const [wipingData, setWipingData] = useState(false);
 
   const handleSignOut = async () => {
+    const ok = await confirmDialog({
+      title: 'Sign out of StudyMind AI?',
+      message:
+        'Your data stays safe in your account. You can sign back in anytime to pick up where you left off.',
+      confirmLabel: 'Sign out',
+    });
+    if (!ok) return;
     setSigningOut(true);
     await supabase.auth.signOut();
     setUser(null);
@@ -37,6 +58,12 @@ export default function SettingsPage() {
 
   const handleSendReset = async () => {
     if (!user?.email) return;
+    const ok = await confirmDialog({
+      title: 'Send password reset email?',
+      message: `We'll send a reset link to ${user.email}. Open it to choose a new password.`,
+      confirmLabel: 'Send reset link',
+    });
+    if (!ok) return;
     setSendingReset(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
@@ -51,10 +78,58 @@ export default function SettingsPage() {
     }
   };
 
-  const handleClearHistory = () => {
-    if (!confirm(`Delete all ${conversations.length} conversations? This cannot be undone.`)) return;
+  const handleClearHistory = async () => {
+    const ok = await confirmDialog({
+      title: 'Clear all chat history?',
+      message: `All ${conversations.length} conversation${conversations.length !== 1 ? 's' : ''} will be deleted. This cannot be undone.`,
+      confirmLabel: 'Clear history',
+      variant: 'danger',
+    });
+    if (!ok) return;
     clearAllConversations();
     toast.success('All conversations cleared');
+  };
+
+  const totalItems =
+    notes.length + quizzes.length + decks.length + tasks.length + conversations.length;
+
+  const handleWipeAllData = async () => {
+    if (!user?.id) return;
+    const ok = await confirmDialog({
+      title: 'Permanently wipe all your data?',
+      message:
+        'Every note, quiz, flashcard deck, study task, and chat conversation tied to your account will be deleted. This cannot be undone.',
+      confirmLabel: 'Wipe everything',
+      variant: 'danger',
+      requireType: 'DELETE',
+    });
+    if (!ok) return;
+    setWipingData(true);
+    try {
+      const tablesToWipe = [
+        'flashcards',
+        'flashcard_decks',
+        'quiz_attempts',
+        'quizzes',
+        'study_tasks',
+        'notes',
+      ];
+      for (const table of tablesToWipe) {
+        // best-effort — some tables may not exist for this user; ignore errors
+        await supabase.from(table).delete().eq('user_id', user.id);
+      }
+      // clear local state
+      setNotes([]);
+      setQuizzes([]);
+      setDecks([]);
+      setTasks([]);
+      clearAllConversations();
+      toast.success('All your data has been wiped');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to wipe data');
+    } finally {
+      setWipingData(false);
+    }
   };
 
   return (
@@ -241,6 +316,33 @@ export default function SettingsPage() {
             className="settings-danger-btn text-sm"
           >
             <Trash2 size={14} className="inline mr-1" /> Clear history
+          </button>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 py-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+          <div className="min-w-0">
+            <p className="text-sm font-medium flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
+              <AlertTriangle size={13} style={{ color: 'var(--error)' }} />
+              Wipe all data
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+              Permanently deletes {notes.length} note{notes.length !== 1 ? 's' : ''}, {quizzes.length} quiz{quizzes.length !== 1 ? 'zes' : ''}, {decks.length} deck{decks.length !== 1 ? 's' : ''}, {tasks.length} task{tasks.length !== 1 ? 's' : ''}, and {conversations.length} chat{conversations.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+          <button
+            onClick={handleWipeAllData}
+            disabled={wipingData || totalItems === 0}
+            className="settings-danger-btn text-sm"
+          >
+            {wipingData ? (
+              <>
+                <Loader2 size={14} className="inline mr-1 animate-spin" /> Wiping…
+              </>
+            ) : (
+              <>
+                <Trash2 size={14} className="inline mr-1" /> Wipe all data
+              </>
+            )}
           </button>
         </div>
 

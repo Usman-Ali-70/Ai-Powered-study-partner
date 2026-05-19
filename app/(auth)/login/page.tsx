@@ -23,10 +23,32 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail || !trimmedEmail.includes('@')) {
+      toast.error('Please enter a valid email');
+      return;
+    }
+    if (!password) {
+      toast.error('Please enter your password');
+      return;
+    }
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      const { error } = await supabase.auth.signInWithPassword({
+        email: trimmedEmail,
+        password,
+      });
+      if (error) {
+        const msg = error.message || '';
+        if (/invalid login credentials/i.test(msg)) {
+          toast.error('Wrong email or password');
+        } else if (/email not confirmed/i.test(msg)) {
+          toast.error('Please confirm your email before signing in. Check your inbox.');
+        } else {
+          toast.error(msg || 'Login failed');
+        }
+        return;
+      }
       toast.success('Welcome back!');
       router.push('/dashboard');
     } catch (err: unknown) {

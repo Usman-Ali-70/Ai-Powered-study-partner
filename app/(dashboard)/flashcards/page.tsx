@@ -86,16 +86,16 @@ export default function FlashcardsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
+          <h1 className="text-xl sm:text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
             Flashcards
           </h1>
           <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
             Study with AI-generated flashcard decks
           </p>
         </div>
-        <button onClick={() => setShowGenerate(true)} className="btn-primary text-sm">
+        <button onClick={() => setShowGenerate(true)} className="btn-primary text-sm shrink-0 w-full sm:w-auto">
           <Sparkles size={16} /> Generate Deck
         </button>
       </div>
@@ -149,7 +149,7 @@ export default function FlashcardsPage() {
         />
       ) : (
         <motion.div
-          className="grid md:grid-cols-2 xl:grid-cols-3 gap-4"
+          className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
